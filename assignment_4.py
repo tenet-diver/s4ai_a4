@@ -13,25 +13,25 @@ TOTAL_INPUTS = NUM_CHARS * NUM_VARIATIONS_PER_CHAR
 
 characters = {
   "R": np.array([
-    [1, 1, 1, 1, 0],
-    [1, 0, 0, 0, 1],
-    [1, 1, 1, 1, 0],
-    [1, 0, 0, 1, 0],
-    [1, 0, 0, 0, 1]
+    [0.9, 0.9, 0.9, 0.9, 0],
+    [0.9, 0, 0, 0, 0.9],
+    [0.9, 0.9, 0.9, 0.9, 0],
+    [0.9, 0, 0, 0.9, 0],
+    [0.9, 0, 0, 0, 0.9]
   ]),
   "U": np.array([
-    [1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 1],
-    [0, 1, 1, 1, 0]
+    [0.9, 0, 0, 0, 0.9],
+    [0.9, 0, 0, 0, 0.9],
+    [0.9, 0, 0, 0, 0.9],
+    [0.9, 0, 0, 0, 0.9],
+    [0, 0.9, 0.9, 0.9, 0]
   ]),
   "S": np.array([
-      [0, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0],
-      [0, 1, 1, 1, 0],
-      [0, 0, 0, 0, 1],
-      [1, 1, 1, 1, 0]
+      [0, 0.9, 0.9, 0.9, 0.9],
+      [0.9, 0, 0, 0, 0],
+      [0, 0.9, 0.9, 0.9, 0],
+      [0, 0, 0, 0, 0.9],
+      [0.9, 0.9, 0.9, 0.9, 0]
   ])
 }
 
@@ -49,12 +49,12 @@ def create_variations():
     for char_name, char_matrix in characters.items():
         emphasized_strokes_variant = char_matrix.copy()
         if char_name == 'R':
-            emphasized_strokes_variant[2, :4] = 0.6
-            emphasized_strokes_variant[:, 0] = 0.6
+            emphasized_strokes_variant[2, :4] = 0
+            emphasized_strokes_variant[:, 0] = 0
         elif char_name == 'U':
-            emphasized_strokes_variant[4, 1:4] = 0.6
+            emphasized_strokes_variant[4, 1:4] = 0
         elif char_name == 'S':
-            emphasized_strokes_variant[2, 1:4] = 0.6
+            emphasized_strokes_variant[2, 1:4] = 0
 
         blurred_variant = gaussian_filter(char_matrix.astype(float), sigma=0.5)
         if blurred_variant.max() > 0:
