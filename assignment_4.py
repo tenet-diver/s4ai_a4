@@ -2,6 +2,7 @@ import numpy as np
 from scipy.ndimage import gaussian_filter
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 np.random.seed(1)
 
@@ -48,14 +49,14 @@ def create_variations():
     for char_name, char_matrix in characters.items():
         emphasized_strokes_variant = char_matrix.copy()
         if char_name == 'R':
-            emphasized_strokes_variant[2, :4] = 0.9
-            emphasized_strokes_variant[:, 0] = 0.85
+            emphasized_strokes_variant[2, :4] = 0.6
+            emphasized_strokes_variant[:, 0] = 0.6
         elif char_name == 'U':
-            emphasized_strokes_variant[4, 1:4] = 0.9
+            emphasized_strokes_variant[4, 1:4] = 0.6
         elif char_name == 'S':
-            emphasized_strokes_variant[2, 1:4] = 0.85
+            emphasized_strokes_variant[2, 1:4] = 0.6
 
-        blurred_variant = gaussian_filter(char_matrix.astype(float), sigma=0.3)
+        blurred_variant = gaussian_filter(char_matrix.astype(float), sigma=0.5)
         if blurred_variant.max() > 0:
             blurred_variant = blurred_variant / blurred_variant.max()
         blurred_variant = np.clip(blurred_variant, 0, 1)
@@ -67,7 +68,7 @@ def create_variations():
         combined_variant = char_matrix.copy().astype(float)
         combined_noise_mask = np.random.random((5, 5)) < 0.1
         combined_variant[combined_noise_mask] = 1 - combined_variant[combined_noise_mask]
-        combined_variant = gaussian_filter(combined_variant, sigma=0.2)
+        combined_variant = gaussian_filter(combined_variant, sigma=0.5)
         if combined_variant.max() > 0:
             combined_variant = combined_variant / combined_variant.max()
         combined_variant = np.clip(combined_variant, 0, 1)
@@ -235,20 +236,29 @@ def find_undecidable_inputs():
 
 
 def visualize_results(variations, inputs):
+    import matplotlib.colors as mcolors
+
+def visualize_results(variations, inputs):
+    # Define a custom black–gray colormap (e.g., black to 70% gray)
+
     fig, axes = plt.subplots(NUM_CHARS, NUM_VARIATIONS_PER_CHAR + 1, figsize=(12, 8))
+
     for char_idx, char_name in enumerate(CHAR_NAMES):
-        axes[char_idx, 0].imshow(characters[char_name], cmap='gray', vmin=0, vmax=1)
+        # Original character
+        axes[char_idx, 0].imshow(characters[char_name], cmap = 'Greys', vmin=0, vmax=1)
         axes[char_idx, 0].set_title(f'{char_name} (Original)')
         axes[char_idx, 0].axis('off')
 
+        # Variants
         for var_idx, variation_matrix in enumerate(variations[char_name]):
-            axes[char_idx, var_idx+1].imshow(variation_matrix, cmap='gray', vmin=0, vmax=1)
+            axes[char_idx, var_idx+1].imshow(variation_matrix, cmap = 'Greys', vmin=0, vmax=1)
             axes[char_idx, var_idx+1].set_title(f'Var {var_idx+1}')
             axes[char_idx, var_idx+1].axis('off')
 
-    plt.suptitle('Characters and Variations')
+    plt.suptitle('Characters and Variations', fontsize=16)
     plt.tight_layout()
     plt.savefig('characters.png')
+    plt.show()
 
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(correlation_matrix, annot=True, fmt='.1f',
@@ -289,8 +299,10 @@ def visualize_results(variations, inputs):
 if __name__ == "__main__":
     character_variations = create_variations()
     flattened_inputs = create_inputs(character_variations)
+
     correlation_matrix = compute_correlation_matrix(flattened_inputs)
     analyze_correlation()
+    
     neural_network_matrix = create_nn1(character_variations)
     classification_scores = visualize_results(character_variations, flattened_inputs)
 
