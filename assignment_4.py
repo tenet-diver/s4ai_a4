@@ -13,25 +13,25 @@ TOTAL_INPUTS = NUM_CHARS * NUM_VARIATIONS_PER_CHAR
 
 characters = {
   "R": np.array([
-    [0.9, 0.9, 0.9, 0.9, 0],
-    [0.9, 0, 0, 0, 0.9],
-    [0.9, 0.9, 0.9, 0.9, 0],
-    [0.9, 0, 0, 0.9, 0],
-    [0.9, 0, 0, 0, 0.9]
+    [1, 1, 1, 1, 0],
+    [1, 0, 0, 0, 1],
+    [1, 1, 1, 1, 0],
+    [1, 0, 0, 1, 0],
+    [1, 0, 0, 0, 1]
   ]),
   "U": np.array([
-    [0.9, 0, 0, 0, 0.9],
-    [0.9, 0, 0, 0, 0.9],
-    [0.9, 0, 0, 0, 0.9],
-    [0.9, 0, 0, 0, 0.9],
-    [0, 0.9, 0.9, 0.9, 0]
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1],
+    [0, 1, 1, 1, 0]
   ]),
   "S": np.array([
-      [0, 0.9, 0.9, 0.9, 0.9],
-      [0.9, 0, 0, 0, 0],
-      [0, 0.9, 0.9, 0.9, 0],
-      [0, 0, 0, 0, 0.9],
-      [0.9, 0.9, 0.9, 0.9, 0]
+      [0, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0],
+      [0, 1, 1, 1, 0],
+      [0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 0]
   ])
 }
 
@@ -172,6 +172,7 @@ def test_edge_cases():
                     if misclassified_count == 1:
                         predicted_char = CHAR_NAMES[np.argmax(scores)]
                         print(f"  Example: {char_name} → {predicted_char} when flipping pixel [{i},{j}]")
+    print(f"  Found {misclassified_count} misclassifications with one-pixel changes")
 
     two_pixel_misclassified = 0
 
@@ -196,8 +197,40 @@ def test_edge_cases():
                                 predicted_char = CHAR_NAMES[np.argmax(scores)]
                                 print(f"  Example: {char_name} → {predicted_char} when flipping pixels [{i1},{j1}] and [{i2},{j2}]")
 
+    print(f"  Found {two_pixel_misclassified} misclassifications with two-pixel changes")
 
-    return scores_ones, scores_zeros, misclassified_count, two_pixel_misclassified
+
+    three_pixel_misclassified = 0
+
+    for char_name in CHAR_NAMES:
+        char_matrix = characters[char_name]
+        for i1 in range(5):
+            for j1 in range(5):
+                for i2 in range(i1, 5):
+                    for j2 in range(5):
+                        if i1 == i2 and j2 <= j1:
+                            continue
+                        for i3 in range(i2, 5):
+                            for j3 in range(5):
+                                if (i2 == i3 and j3 <= j2) or (i1 == i3 and j1 == j3):
+                                    continue
+
+                                test_input = char_matrix.copy()
+                                test_input[i1, j1] = 1 - test_input[i1, j1]
+                                test_input[i2, j2] = 1 - test_input[i2, j2]
+                                test_input[i3, j3] = 1 - test_input[i3, j3]
+                                scores = test_nn1(test_input)
+                                true_idx = CHAR_NAMES.index(char_name)
+
+                                if np.argmax(scores) != true_idx:
+                                    three_pixel_misclassified += 1
+                                    if three_pixel_misclassified == 1:
+                                        predicted_char = CHAR_NAMES[np.argmax(scores)]
+                                        print(f"  Example: {char_name} → {predicted_char} when flipping pixels [{i1},{j1}], [{i2},{j2}] and [{i3},{j3}]")
+
+    print(f"  Found {three_pixel_misclassified} misclassifications with three-pixel changes")
+
+    return scores_ones, scores_zeros, misclassified_count, two_pixel_misclassified, three_pixel_misclassified
 
 
 def find_undecidable_inputs():
