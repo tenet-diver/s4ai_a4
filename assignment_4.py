@@ -113,7 +113,6 @@ def analyze_correlation():
                     correlation_values.append(correlation_matrix[matrix_row, matrix_col])
             char_confusion[char_idx_1, char_idx_2] = np.mean(correlation_values)
 
-    print("\n📊 Character Confusion Matrix:")
     header = "    " + "".join(f"{c:7s}" for c in CHAR_NAMES)
     print(header)
     for char_idx, char_name in enumerate(CHAR_NAMES):
@@ -147,7 +146,6 @@ def test_nn1(input_vec):
 
 
 def test_edge_cases():
-    print("\n🔍 Testing edge cases:")
 
     all_ones = np.ones(25)
     scores_ones = test_nn1(all_ones)
@@ -158,7 +156,6 @@ def test_edge_cases():
     scores_zeros = test_nn1(all_zeros)
     print(f"All zeros: R={scores_zeros[0]:.3f}, U={scores_zeros[1]:.3f}, S={scores_zeros[2]:.3f}")
 
-    print("\n⚠️  Testing single-pixel perturbations...")
     misclassified_count = 0
 
     for char_name in CHAR_NAMES:
@@ -176,9 +173,6 @@ def test_edge_cases():
                         predicted_char = CHAR_NAMES[np.argmax(scores)]
                         print(f"  Example: {char_name} → {predicted_char} when flipping pixel [{i},{j}]")
 
-    print(f"  Found {misclassified_count} misclassifications with single-pixel changes")
-
-    print("\n⚠️  Testing two-pixel perturbations...")
     two_pixel_misclassified = 0
 
     for char_name in CHAR_NAMES:
@@ -202,13 +196,11 @@ def test_edge_cases():
                                 predicted_char = CHAR_NAMES[np.argmax(scores)]
                                 print(f"  Example: {char_name} → {predicted_char} when flipping pixels [{i1},{j1}] and [{i2},{j2}]")
 
-    print(f"  Found {two_pixel_misclassified} misclassifications with two-pixel changes")
 
     return scores_ones, scores_zeros, misclassified_count, two_pixel_misclassified
 
 
 def find_undecidable_inputs():
-    print("\n🤔 Finding undecidable inputs using null-space method...")
 
     constraint_matrix = np.vstack([
         # difference between R & U
@@ -229,14 +221,9 @@ def find_undecidable_inputs():
     scores = test_nn1(undecidable_input)
     score_std = np.std(scores)
 
-    print(f"  Undecidable input scores: R={scores[0]:.3f}, U={scores[1]:.3f}, S={scores[2]:.3f}")
-    print(f"  Score standard deviation: {score_std:.6f} (close to 0 = undecidable)")
-
     return undecidable_input, scores, score_std
 
 
-def visualize_results(variations, inputs):
-    import matplotlib.colors as mcolors
 
 def visualize_results(variations, inputs):
     # Define a custom black–gray colormap (e.g., black to 70% gray)
@@ -318,17 +305,3 @@ if __name__ == "__main__":
     undecidable_results = find_undecidable_inputs()
 
     accuracy_percentage = 100 * num_correct_predictions / len(labels)
-    print(f"\n✅ Accuracy: {num_correct_predictions}/{len(labels)} = {accuracy_percentage:.1f}%")
-    print("Saved: characters.png, correlation.png, scores.png")
-
-    if len(edge_case_results) > 3 and edge_case_results[2] > 0:
-        print(f"⚠️  {edge_case_results[2]} single-pixel vulnerabilities found")
-    else:
-        print("✅ No single-pixel vulnerabilities found")
-
-    if len(edge_case_results) > 3 and edge_case_results[3] > 0:
-        print(f"⚠️  {edge_case_results[3]} two-pixel vulnerabilities found")
-    else:
-        print("✅ No two-pixel vulnerabilities found")
-
-    print(f"🤔 Undecidable input std: {undecidable_results[2]:.6f}")
